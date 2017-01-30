@@ -1,0 +1,710 @@
+---
+title: "project_PODS"
+author: "Wassim BEN YOUSSEF"
+date: "22 novembre 2016"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+getwd()
+
+#install.packages("rpart", dep=TRUE)
+#install.packages("tree", dep=TRUE)
+#install.packages("party", dep=TRUE)
+#install.packages("rattle", dep=TRUE)
+#install.packages("rpart.plot", dep=TRUE)
+#install.packages("readr")
+#install.packages("dplyr")
+#install.packages("formattable")
+#install.packages("RColorBrewer")
+#install.packages("plotly")
+#install.packages("ggthemes")
+setwd("c:/Users/wassim/Desktop/Masters/Semester1/Principle Data Science/coursework")
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(plotly)
+library(magrittr)
+library(ggthemes)
+library(reshape2)
+library(stringr)
+library(readr)
+library(stringi)
+library(rpart)
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+#install.packages("tree")
+library(tree)
+library(ggplot2) # Data visualization
+library(readr) # CSV file I/O, e.g. the read_csv function
+library(dplyr)
+library(reshape2)
+library(formattable)
+library(RColorBrewer)
+library(plotly)
+library(ggthemes)
+attacks <- read.csv("./attacks_test.csv",sep=",",header=TRUE, na.strings=c(""," ","NA"))
+nrow(attacks)
+ncol(attacks)
+attacks <- attacks[rowSums(is.na(attacks[,5:9]))==0,]
+attacks <- attacks[complete.cases(attacks[,10]),]
+attacks <- attacks[rowSums(is.na(attacks[,12:13]))==0,]
+attacks <- attacks[complete.cases(attacks[,16]),]
+attacks <- attacks[attacks$Year > 1850,]
+typeof(attacks[5,"Species"])
+attacks$Species <- as.character(attacks$Species)
+typeof('a')
+nb_manquante<-sapply(attacks, function(x) sum(length(which(is.na(x))))) 
+nb_manquante
+
+
+# Create new variable zone
+#Split the words in Species to identify species
+attacks$Species1 <- sapply(attacks$Species, FUN=function(x) {strsplit(x, split='[,. ]')[[1]][1]})
+attacks$Species2 <- sapply(attacks$Species, FUN=function(x) {strsplit(x, split='[,. ]')[[1]][2]})
+attacks$Species3 <- sapply(attacks$Species, FUN=function(x) {strsplit(x, split='[,. ]')[[1]][3]})
+attacks$Species4 <- sapply(attacks$Species, FUN=function(x) {strsplit(x, split='[,. ]')[[1]][4]})
+attacks$Species <- sub(' ', '',attacks$Species)
+
+# Delete attacks when shark involvement is not confirmed
+for (i in 1:nrow(attacks)){
+  if(attacks$Species1[i] %in% 'No' | attacks$Species2[i] %in% 'not' | attacks$Species3[i] %in% 'not' | attacks$Species2[i] %in% 'involvement' | attacks$Species3[i] %in% 'involvement'){
+    attacks <- attacks[-i,]
+  }
+}
+
+attacks$Species_final[attacks$Species1 %in% 'Tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species2 %in% 'tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species3 %in% 'tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species4 %in% 'Tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species1 %in% 'tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species2 %in% 'tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species3 %in% 'tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species4 %in% 'tiger'] <- 'Tiger'
+attacks$Species_final[attacks$Species1 %in% 'White'] <- 'White'
+attacks$Species_final[attacks$Species2 %in% 'White'] <- 'White'
+attacks$Species_final[attacks$Species3 %in% 'White'] <- 'White'
+attacks$Species_final[attacks$Species4 %in% 'White'] <- 'White'
+attacks$Species_final[attacks$Species1 %in% 'white'] <- 'White'
+attacks$Species_final[attacks$Species2 %in% 'white'] <- 'White'
+attacks$Species_final[attacks$Species3 %in% 'white'] <- 'White'
+attacks$Species_final[attacks$Species4 %in% 'white'] <- 'White'
+attacks$Species_final[attacks$Species1 %in% 'Bull'] <- 'Bull'
+attacks$Species_final[attacks$Species2 %in% 'Bull'] <- 'Bull'
+attacks$Species_final[attacks$Species3 %in% 'Bull'] <- 'Bull'
+attacks$Species_final[attacks$Species4 %in% 'Bull'] <- 'Bull'
+attacks$Species_final[attacks$Species1 %in% 'bull'] <- 'Bull'
+attacks$Species_final[attacks$Species2 %in% 'bull'] <- 'Bull'
+attacks$Species_final[attacks$Species3 %in% 'bull'] <- 'Bull'
+attacks$Species_final[attacks$Species4 %in% 'bull'] <- 'Bull'
+attacks$Species_final[attacks$Species1 %in% 'Blue'] <- 'Blue'
+attacks$Species_final[attacks$Species2 %in% 'Blue'] <- 'Blue'
+attacks$Species_final[attacks$Species3 %in% 'Blue'] <- 'Blue'
+attacks$Species_final[attacks$Species4 %in% 'Blue'] <- 'Blue'
+attacks$Species_final[attacks$Species1 %in% 'blue'] <- 'Blue'
+attacks$Species_final[attacks$Species2 %in% 'blue'] <- 'Blue'
+attacks$Species_final[attacks$Species3 %in% 'blue'] <- 'Blue'
+attacks$Species_final[attacks$Species4 %in% 'blue'] <- 'Blue'
+attacks$Species_final[attacks$Species1 %in% 'Reef'] <- 'Reef'
+attacks$Species_final[attacks$Species2 %in% 'Reef'] <- 'Reef'
+attacks$Species_final[attacks$Species3 %in% 'Reef'] <- 'Reef'
+attacks$Species_final[attacks$Species4 %in% 'Reef'] <- 'Reef'
+attacks$Species_final[attacks$Species1 %in% 'reef'] <- 'Reef'
+attacks$Species_final[attacks$Species2 %in% 'reef'] <- 'Reef'
+attacks$Species_final[attacks$Species3 %in% 'reef'] <- 'Reef'
+attacks$Species_final[attacks$Species4 %in% 'reef'] <- 'Reef'
+attacks$Species_final[attacks$Species1 %in% 'Lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species2 %in% 'Lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species3 %in% 'Lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species4 %in% 'Lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species1 %in% 'lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species2 %in% 'lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species3 %in% 'lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species4 %in% 'lemon'] <- 'Lemon'
+attacks$Species_final[attacks$Species1 %in% 'Angel'] <- 'Angel'
+attacks$Species_final[attacks$Species2 %in% 'Angel'] <- 'Angel'
+attacks$Species_final[attacks$Species3 %in% 'Angel'] <- 'Angel'
+attacks$Species_final[attacks$Species4 %in% 'Angel'] <- 'Angel'
+attacks$Species_final[attacks$Species1 %in% 'angel'] <- 'Angel'
+attacks$Species_final[attacks$Species2 %in% 'angel'] <- 'Angel'
+attacks$Species_final[attacks$Species3 %in% 'angel'] <- 'Angel'
+attacks$Species_final[attacks$Species4 %in% 'angel'] <- 'Angel'
+attacks$Species_final[attacks$Species1 %in% 'Dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species2 %in% 'Dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species3 %in% 'Dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species4 %in% 'Dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species1 %in% 'dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species2 %in% 'dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species3 %in% 'dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species4 %in% 'dogfish'] <- 'Dogfish'
+attacks$Species_final[attacks$Species1 %in% 'Nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species2 %in% 'Nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species3 %in% 'Nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species4 %in% 'Nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species1 %in% 'nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species2 %in% 'nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species3 %in% 'nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species4 %in% 'nurse'] <- 'Nurse'
+attacks$Species_final[attacks$Species1 %in% 'Mako'] <- 'Mako'
+attacks$Species_final[attacks$Species2 %in% 'Mako'] <- 'Mako'
+attacks$Species_final[attacks$Species3 %in% 'Mako'] <- 'Mako'
+attacks$Species_final[attacks$Species4 %in% 'Mako'] <- 'Mako'
+attacks$Species_final[attacks$Species1 %in% 'mako'] <- 'Mako'
+attacks$Species_final[attacks$Species2 %in% 'mako'] <- 'Mako'
+attacks$Species_final[attacks$Species3 %in% 'mako'] <- 'Mako'
+attacks$Species_final[attacks$Species4 %in% 'mako'] <- 'Mako'
+attacks$Species_final[attacks$Species1 %in% 'Blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species2 %in% 'Blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species3 %in% 'Blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species4 %in% 'Blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species1 %in% 'blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species2 %in% 'blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species3 %in% 'blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species4 %in% 'blacktip'] <- 'Blacktip'
+attacks$Species_final[attacks$Species1 %in% 'Wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species2 %in% 'Wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species3 %in% 'Wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species4 %in% 'Wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species1 %in% 'wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species2 %in% 'wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species3 %in% 'wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species4 %in% 'wobbegong'] <- 'Wobbegong'
+attacks$Species_final[attacks$Species1 %in% 'Whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species2 %in% 'Whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species3 %in% 'Whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species4 %in% 'Whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species1 %in% 'whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species2 %in% 'whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species3 %in% 'whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species4 %in% 'whaler'] <- 'Whaler'
+attacks$Species_final[attacks$Species1 %in% 'Sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species2 %in% 'Sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species3 %in% 'Sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species4 %in% 'Sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species1 %in% 'sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species2 %in% 'sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species3 %in% 'sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species4 %in% 'sandtiger'] <- 'Sandtiger'
+attacks$Species_final[attacks$Species1 %in% 'Silky'] <- 'Silky'
+attacks$Species_final[attacks$Species2 %in% 'Silky'] <- 'Silky'
+attacks$Species_final[attacks$Species3 %in% 'Silky'] <- 'Silky'
+attacks$Species_final[attacks$Species4 %in% 'Silky'] <- 'Silky'
+attacks$Species_final[attacks$Species1 %in% 'silky'] <- 'Silky'
+attacks$Species_final[attacks$Species2 %in% 'silky'] <- 'Silky'
+attacks$Species_final[attacks$Species3 %in% 'silky'] <- 'Silky'
+attacks$Species_final[attacks$Species4 %in% 'silky'] <- 'Silky'
+attacks$Species_final[attacks$Species1 %in% 'Spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species2 %in% 'Spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species3 %in% 'Spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species4 %in% 'Spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species1 %in% 'spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species2 %in% 'spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species3 %in% 'spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species4 %in% 'spinner'] <- 'Spinner'
+attacks$Species_final[attacks$Species1 %in% 'Hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species2 %in% 'Hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species3 %in% 'Hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species4 %in% 'Hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species1 %in% 'hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species2 %in% 'hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species3 %in% 'hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species4 %in% 'hammerhead'] <- 'Hammerhead'
+attacks$Species_final[attacks$Species1 %in% 'Raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species2 %in% 'Raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species3 %in% 'Raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species4 %in% 'Raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species1 %in% 'raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species2 %in% 'raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species3 %in% 'raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species4 %in% 'raggedtooth'] <- 'Raggedtooth'
+attacks$Species_final[attacks$Species1 %in% 'Sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species2 %in% 'Sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species3 %in% 'Sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species4 %in% 'Sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species1 %in% 'sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species2 %in% 'sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species3 %in% 'sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species4 %in% 'sandbar'] <- 'Sandbar'
+attacks$Species_final[attacks$Species1 %in% 'Galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species2 %in% 'Galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species3 %in% 'Galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species4 %in% 'Galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species1 %in% 'galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species2 %in% 'galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species3 %in% 'galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species4 %in% 'galapagos'] <- 'Galapagos'
+attacks$Species_final[attacks$Species1 %in% 'Salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species2 %in% 'Salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species3 %in% 'Salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species4 %in% 'Salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species1 %in% 'salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species2 %in% 'salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species3 %in% 'salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species4 %in% 'salmon'] <- 'Salmon'
+attacks$Species_final[attacks$Species1 %in% 'Porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species2 %in% 'Porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species3 %in% 'Porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species4 %in% 'Porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species1 %in% 'porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species2 %in% 'porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species3 %in% 'porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species4 %in% 'porbeagle'] <- 'Porbeagle'
+attacks$Species_final[attacks$Species1 %in% 'Dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species2 %in% 'Dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species3 %in% 'Dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species4 %in% 'Dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species1 %in% 'dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species2 %in% 'dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species3 %in% 'dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species4 %in% 'dusky'] <- 'Dusky'
+attacks$Species_final[attacks$Species1 %in% 'Zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species2 %in% 'Zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species3 %in% 'Zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species4 %in% 'Zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species1 %in% 'zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species2 %in% 'zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species3 %in% 'zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species4 %in% 'zambesi'] <- 'Zambesi'
+attacks$Species_final[attacks$Species1 %in% 'Thresher'] <- 'Thresher'
+attacks$Species_final[attacks$Species2 %in% 'Thresher'] <- 'Thresher'
+attacks$Species_final[attacks$Species3 %in% 'Thresher'] <- 'Thresher'
+attacks$Species_final[attacks$Species4 %in% 'Thresher'] <- 'Thresher'
+attacks$Species_final[attacks$Species1 %in% 'thresher'] <- 'Thresher'
+attacks$Species_final[attacks$Species2 %in% 'thresher'] <- 'Thresher'
+attacks$Species_final[attacks$Species3 %in% 'thresher'] <- 'Thresher'
+attacks$Species_final[attacks$Species4 %in% 'thresher'] <- 'Thresher'
+
+# Replace NA values or other values of species by "other or unknown"
+
+attacks$Species_final[is.na(attacks$Species_final)] <- "Other or unknown"
+
+#Creation of the variable zone
+# Creation of N-W Atlantic in which I put all countries from Mexico and Caribbean Sea to Canada including USA apart California which is situated in North East Pacific. I include all islands located in the Golf of Mexico and in Caribbean Sea
+attacks$zone[attacks$Country %in% "USA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "AZORES"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "MEXICO"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "CUBA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "GRENADA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "ATLANTIC OCEAN"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "BERMUDA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "CANADA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "CARIBBEAN SEA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "DOMINICAN REPUBLIC"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "BARBADOS"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "MID ATLANTIC OCEAN"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "CAYMAN ISLANDS"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "GRAND CAYMAN"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "PUERTO RICO"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "NORTH ATLANTIC OCEAN"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "HAITI"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "TRINIDAD & TOBAGO"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "BELIZE"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "BRITISH WEST INDIES"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "ST. MAARTIN"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "JAMAICA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "TURCS & CAICOS"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "ANTIGUA"] <- "N-W Atlantic"
+attacks$zone[attacks$Country %in% "BAHAMAS"] <- "N-W Atlantic"
+
+# I assign for all islands of Oceania and pacific ocean from Malaysia to New Zealand the value Oceania 
+attacks$zone[attacks$Country %in% "AUSTRALIA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "NEW ZEALAND"] <- "Oceania"
+attacks$zone[attacks$Country %in% "PAPUA NEW GUINEA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "FIJI"] <- "Oceania"
+attacks$zone[attacks$Country %in% "NEW CALEDONIA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "FRENCH POLYNESIA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "SOLOMON ISLANDS"] <- "Oceania"
+attacks$zone[attacks$Country %in% "INDONESIA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "VANUATU"] <- "Oceania"
+attacks$zone[attacks$Country %in% "TONGA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "MARSHALL ISLANDS"] <- "Oceania"
+attacks$zone[attacks$Country %in% "NEW BRITAIN"] <- "Oceania"
+attacks$zone[attacks$Country %in% "NEW GUINEA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "PALAU"] <- "Oceania"
+attacks$zone[attacks$Country %in% "MICRONESIA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "TONGA "] <- "Oceania"
+attacks$zone[attacks$Country %in% "MALAYSIA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "AMERICAN SAMOA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "GUAM"] <- "Oceania"
+attacks$zone[attacks$Country %in% "KIRIBATI"] <- "Oceania"
+attacks$zone[attacks$Country %in% "TASMA SEA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "Fiji"] <- "Oceania"
+attacks$zone[attacks$Country %in% "WESTERN SAMOA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "BRITISH NEW GUINEA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "FEDERATED STATES OF MICRONESIA"] <- "Oceania"
+attacks$zone[attacks$Country %in% "TANZANIA"] <- "Oceania"
+
+
+# Creation of the value N-E Atlantic for all states at the north of the Mediterranean, including the North Sea
+
+attacks$zone[attacks$Country %in% "ENGLAND"] <- "N-E Atlantic"
+attacks$zone[attacks$Country %in% "UNITED KINGDOM"] <- "N-E Atlantic"
+attacks$zone[attacks$Country %in% "SCOTLAND"] <- "N-E Atlantic"
+attacks$zone[attacks$Country %in% "PORTUGAL"] <- "N-E Atlantic"
+attacks$zone[attacks$Country %in% "SWEDEN"] <- "N-E Atlantic"
+attacks$zone[attacks$Country %in% "NORTH SEA"] <- "N-E Atlantic"
+attacks$zone[attacks$Country %in% "ICELAND"] <- "N-E Atlantic"
+
+# S-W Atlantic : all countries in the atlantic part of South America from Guatemala
+
+attacks$zone[attacks$Country %in% "BRAZIL"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "PANAMA"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "VENEZUELA"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "SOUTH ATLANTIC OCEAN"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "NICARAGUA"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "URUGUAY"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "HONDURAS"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "EL SALVADOR"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "ARGENTINA"] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "NICARAGUA "] <- "S-W Atlantic"
+attacks$zone[attacks$Country %in% "GUYANA"] <- "S-W Atlantic"
+
+# Indian Ocean : countries in ocean india in which I choose to include Aden golf, Iran , South Sinai, and South Africa even if a part of South Africa is not in the Indian Ocean until Burma.
+
+attacks$zone[attacks$Country %in% "SOUTH AFRICA"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "REUNION"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "MOZAMBIQUE"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "INDIA"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "IRAN"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "SRI LANKA"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "IRAQ"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "SOMALIA"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "UNITED ARAB EMIRATES (UAE)"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "UNITED ARAB EMIRATES"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "SAUDI ARABIA"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "BURMA"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "SEYCHELLES"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "Seychelles"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "MAURITIUS"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "MADAGASCAR"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "PERSIAN GULF"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "SUDAN?"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "SUDAN"] <- "Indian Ocean"
+attacks$zone[attacks$Country %in% "KENYA"] <- "Indian Ocean"
+
+
+# South east Atlantic : West part of Africa
+
+attacks$zone[attacks$Country %in% "GABON"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "NAMIBIA"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "CAPE VERDE"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "Sierra Leone"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "SIERRA LEONE"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "GUINEA"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "LIBERIA"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "NIGERIA"] <-"S-E Atlantic"
+attacks$zone[attacks$Country %in% "SENEGAL"] <- "S-E Atlantic"
+attacks$zone[attacks$Country %in% "GABON"] <- "S-E Atlantic"
+
+# Mediterranea 
+
+attacks$zone[attacks$Country %in% "ITALY"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "SPAIN"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "EGYPT"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "CROATIA"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "GREECE"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "ISRAEL"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "LIBYA"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "TURKEY"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "FRANCE"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "MALTA"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "MONTENEGRO"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "EGYPT "] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "THE BALKANS"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "EGYPT / ISRAEL"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "CYPRUS"] <- "Mediterranea"
+attacks$zone[attacks$Country %in% "LEBANON"] <- "Mediterranea"
+
+# East pacific including western part of USA and south-west america
+
+attacks$zone[attacks$Area %in% "California"] <- "East Pacific"
+attacks$zone[attacks$Country %in% "PACIFIC OCEAN"] <- "East Pacific"
+attacks$zone[attacks$Country %in% "PACIFIC OCEAN "] <- "East Pacific"
+attacks$zone[attacks$Country %in% "COLUMBIA"] <- "East Pacific"
+attacks$zone[attacks$Country %in% "CHILE"] <- "East Pacific"
+attacks$zone[attacks$Country %in% "ECUADOR"] <- "East Pacific"
+attacks$zone[attacks$Country %in% "COSTA RICA"] <- "East Pacific"
+
+# North weast pacific ocean including all the eastern part of Asia from Thailand, including Philippines and Russia
+
+attacks$zone[attacks$Country %in% "PHILIPPINES"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "VIETNAM"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "TAIWAN"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "HONG KONG"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "SOUTH KOREA"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "OKINAWA"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "CHINA"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "THAILAND"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "JAPAN"] <- "N-W Pacific"
+attacks$zone[attacks$Country %in% "RUSSIA"] <- "N-W Pacific"
+attacks$zone[attacks$zone %in% "North West Pacific Ocean"] <- "N-W Pacific"
+# Cluster acvitities and Injuries + creating binary variable for fatality  
+attacks$new_activity <- NULL
+attacks <- attacks %>%
+mutate(fatality=ifelse(`Fatal..Y.N.`=='Y',1,0))%>%
+mutate(Injury_Type = ifelse(
+  is.na(Injury), "NA",
+  ifelse(grepl("bitten", Injury, ignore.case = T),"Bitten",
+  ifelse(grepl("Laceration", Injury, ignore.case = T), "Lacerations", 
+  ifelse(grepl("Minor injury", Injury, ignore.case = T), "Injured",
+  ifelse(grepl("Injured", Injury, ignore.case = T), "Injured",
+  ifelse(grepl("Injuries", Injury, ignore.case = T), "Injured",
+  ifelse(grepl("No injury", Injury, ignore.case = T), "No Injury",
+  ifelse(grepl("Disappeared", Injury, ignore.case = T), "Disappeared",      
+  ifelse(grepl("FATAL", Injury, ignore.case = T), "Fatal", "Others")))))))))) %>%
+mutate(Activity_Type = ifelse(
+  is.na(Activity),"NA",
+  ifelse(grepl("Surf.*", Activity, ignore.case = T),"Surfing",
+  ifelse(grepl("Swim.*", Activity, ignore.case = T), "Swimming", 
+  ifelse(grepl("Fishing", Activity, ignore.case = T), "Fishing",
+  ifelse(grepl("Bath.*", Activity, ignore.case = T), "Bathing",
+  ifelse(grepl("Wading", Activity, ignore.case = T), "Wading",
+  ifelse(grepl("Diving", Activity, ignore.case = T), "Diving",
+  ifelse(grepl("Standing", Activity, ignore.case = T), "Standing",      
+  ifelse(grepl("Snorkel+ing", Activity, ignore.case = T), "Snorkelling", "Others"))))))))))
+# Cluster injuries
+
+attacks$Species1 <- NULL
+attacks$Species2 <- NULL
+attacks$Species3 <- NULL
+attacks$Species4 <- NULL
+sapply(attacks, function(x) sum(length(which(is.na(x)))))
+# Try to predict the 100 NA of Zone using new variables created, Sex and Year
+
+arbre <- rpart(zone ~ Year + Species_final + Activity_Type + Injury_Type + fatality + Type ,data=attacks[!is.na(attacks$zone),], method="class")
+
+arbreOptimal<- prune(arbre,cp=arbre$cptable[which.min(arbre$cptable[,4]),1])
+fancyRpartPlot(arbreOptimal)
+prp(arbreOptimal,extra=1)
+pred<-predict(arbreOptimal,attacks[is.na(attacks$zone),], type="class")
+help(predict)
+pred
+attacks$zone[is.na(attacks$zone)] <- pred
+attacks[attacks$zone == 5,"zone"] <- "Oceania"
+attacks[attacks$zone == 7,"zone"] <- "N-W Pacific"
+table(attacks$zone)
+# Create a pie chart for activity_type
+
+mytable <- table(attacks$Activity_Type)
+
+pct <- round(mytable/sum(mytable)*100)
+lbls <- paste(names(mytable), pct)
+lbls <- paste(lbls, "%", sep="")
+pie(mytable, labels = lbls, col=rainbow(length(lbls)),
+   main="Pie Chart of activities\n ")
+# Pie chart for species and injury
+View(attacks_white)
+attacks_white <- attacks[attacks$Species_final=="White",]
+mytable2 <- table(attacks_white$Injury_Type)
+pct <- round(mytable2/sum(mytable2)*100)
+lbls <- paste(names(mytable2), pct)
+lbls <- paste(lbls, "%", sep="")
+pie(mytable2, labels = lbls, col=rainbow(length(lbls)),
+   main="type of injuries caused by White Shark attacks")
+attacks_tiger <- attacks[attacks$Species_final=="Tiger",]
+mytable3 <- table(attacks_tiger$Injury_Type)
+pct <- round(mytable3/sum(mytable3)*100)
+lbls <- paste(names(mytable3), pct)
+lbls <- paste(lbls, "%", sep="")
+pie(mytable3, labels = lbls, col=rainbow(length(lbls)),
+   main="type of injuries caused by Tiger Shark attacks")
+attacks_bull <- attacks[attacks$Species_final=="Bull",]
+mytable4 <- table(attacks_bull$Injury_Type)
+pct <- round(mytable4/sum(mytable4)*100)
+lbls <- paste(names(mytable4), pct)
+lbls <- paste(lbls, "%", sep="")
+pie(mytable4, labels = lbls, col=rainbow(length(lbls)),
+   main="type of injuries caused by Bull Shark attacks")
+# classment of number of attacks by new geographical zones 
+attacks %>%
+  count(zone, sort=TRUE) %>%
+  mutate(zone=reorder(zone,n))%>%
+  ggplot(aes(zone,n)) +
+  geom_bar(stat='identity',color='white') + 
+  coord_flip() +
+  geom_text(aes(label=n,hjust=-0.1)) + 
+  theme_economist() + 
+  ggtitle('Number of shark attacks per zone') 
+
+attacks %>%
+  count(Species_final, sort=TRUE) %>%
+  mutate(Species_final=reorder(Species_final,n))%>%
+  ggplot(aes(Species_final,n)) +
+  geom_bar(stat='identity',color='white') + 
+  coord_flip() +
+  geom_text(aes(label=n,hjust=-0.1)) + 
+  theme_economist() + 
+  ggtitle('Importance of each shark species in attacks') 
+
+attacks_NWA <- attacks[attacks$Species_final == "White",]
+counts <- table(attacks_NWA$Species_final, attacks_NWA$zone)
+barplot(counts, main="White Shark attacks Distribution by Geographical zones ",
+  xlab="Geographical zone",ylab = "number of attacks" ,
+  legend = rownames(counts), beside=TRUE)
+attacks_NWA2 <- attacks[attacks$Species_final == "Tiger",]
+counts <- table(attacks_NWA2$Species_final, attacks_NWA2$zone)
+barplot(counts, main="Tiger Shark attacks Distribution by Geographical zones ",
+  xlab="Geographical zone",ylab = "number of attacks" ,
+  legend = rownames(counts), beside=TRUE)
+attacks_NWA3 <- attacks[attacks$Species_final == "Bull",]
+counts <- table(attacks_NWA3$Species_final, attacks_NWA3$zone)
+barplot(counts, main="Bull Shark attacks Distribution by Geographical zones",
+  xlab="Geographical zone",ylab = "number of attacks" ,
+  legend = rownames(counts), beside=TRUE)
+
+
+counts <- table( attacks$fatality , attacks$zone)
+barplot(counts, main="Fatal attacks per geographical zones",
+  xlab="Geographical zone",ylab = "number of attacks" ,col = c("blue","red"),
+  legend = rownames(counts), beside=TRUE)
+
+counts <- table( attacks$Injury_Type , attacks$Species_final)
+barplot(counts, main="Type of injuries by species",
+  xlab="Species",ylab = "number of cases" ,col = rainbow(7),
+  legend = rownames(counts), beside=TRUE)
+
+counts <- table( attacks$Injury_Type , attacks$zone)
+barplot(counts, main="Type of injuries by zone",
+  xlab="zone",ylab = "number of cases" ,col = rainbow(7),
+  legend = rownames(counts), beside=TRUE)
+
+# Comparison of two types of anti shark net : 
+## First, in Queensland, Australia, drum lines installed since early 1960s : 
+attacks_Queensland <- attacks[attacks$Area =="Queensland",]
+table = table(attacks_Queensland$fatality, attacks_Queensland$Year)
+barplot(table, main="Fatal attacks in Queensland area (Drum lines)",
+  xlab="Geographical zone",ylab = "number of attacks" ,col = c("blue","red"),
+  legend = rownames(table), beside=TRUE)
+attacks_NewWales <- attacks[attacks$Area =="New South Wales",]
+table = table(attacks_NewWales$fatality, attacks_NewWales$Year)
+barplot(table, main="Fatal attacks in New South Wales (Simple shark nets)",
+  xlab="Geographical zone",ylab = "number of attacks" ,col = c("blue","red"),
+  legend = rownames(table), beside=TRUE)
+# Try to plot chance of death by zone
+
+shark <- attacks
+shark %<>% tbl_df()
+shark %>% colnames() %>% dput()
+colnames(shark) <- c("Case Number", "Date", "Year", "Type", "Country", "Area", "Location", 
+"Activity", "Name", "Sex", "Age", "Injury", "Fatal_Y_N", "Time", 
+"Species", "Investigator or Source","Species_final","zone","fatality","Injury_Type","Activity_Type")
+shark$Country %<>% stri_enc_toutf8()
+shark$Area %<>% stri_enc_toutf8()
+
+temp <- shark %>% dplyr::filter(Year != 0)
+
+
+attack_by_zone <- temp %>% select(c(zone, Fatal_Y_N))
+attack_by_zone %<>%  filter(Fatal_Y_N %in% Yes_No) 
+attack_by_zone$Fatal <- attack_by_zone$Fatal_Y_N
+attack_by_zone %<>% select(-Fatal_Y_N)
+attack_by_zone %<>% remove_missing()
+attack_by_zone %<>% filter(zone != "")
+
+attack_by_zone %<>% arrange(zone)
+overall_tally_zone <- tally(group_by(attack_by_zone, zone))
+names_zone <- overall_tally_zone$zone %>% unique() %>% dput() 
+
+names_zone %<>% tbl_df()
+Country_attack_by_zone_fatal <- tally(group_by(attack_by_zone, zone, Fatal))
+Country_attack_by_zone_fatal1 <- Country_attack_by_zone_fatal
+Country_attack_by_zone_fatal1 %<>% select(c(zone, Fatal, n))
+Country_attack_by_zone_fatal1$sum = 0
+for(i in 1:nrow(Country_attack_by_zone_fatal1)){
+Country_attack_by_zone_fatal1$sum[i] <- Country_attack_by_zone_fatal$n[i] + Country_attack_by_zone_fatal$n[i+1]
+}
+for(i in 1:nrow(Country_attack_by_zone_fatal1)){
+  if(i %% 2 == 0){
+    Country_attack_by_zone_fatal1$sum[i] <- Country_attack_by_zone_fatal1$sum[i-1]
+  }
+}
+Country_attack_by_zone_fatal1[3,"sum"] <- 589
+Country_attack_by_zone_fatal1[4,"sum"] <- 589
+Country_attack_by_zone_fatal1[5,"sum"] <- 589
+Country_attack_by_zone_fatal1[6,"sum"] <- 137
+Country_attack_by_zone_fatal1[7,"sum"] <- 137
+Country_attack_by_zone_fatal1[8,"sum"] <- 137
+Country_attack_by_zone_fatal1[11,"sum"] <- 1741
+Country_attack_by_zone_fatal1[12,"sum"] <- 1741
+Country_attack_by_zone_fatal1[13,"sum"] <- 1741
+Country_attack_by_zone_fatal1[14,"sum"] <- 85
+Country_attack_by_zone_fatal1[15,"sum"] <- 85
+Country_attack_by_zone_fatal1[16,"sum"] <- 85
+Country_attack_by_zone_fatal1 <- Country_attack_by_zone_fatal1[-17,]
+Country_attack_by_zone_fatal1[17,"sum"] <- 1322
+Country_attack_by_zone_fatal1[18,"sum"] <- 1322
+Country_attack_by_zone_fatal1[19,"sum"] <- 1322
+Shark_Fatal_zone <- Country_attack_by_zone_fatal1 
+Shark_Fatal_zone$Survive <- NULL
+Shark_Fatal_zone$Death <- NULL
+Shark_Fatal_zone$Proba = 0
+for(i in 1:nrow(Shark_Fatal_zone)){
+  Shark_Fatal_zone$Proba[i] <- Shark_Fatal_zone$n[i]/Shark_Fatal_zone$sum[i]
+}
+ 
+Shark_Fatal_zone_Plot_Die <- Shark_Fatal_zone %>%
+  filter(Fatal == "Y") %>%
+  ggplot() +
+  geom_bar(mapping = aes(reorder(zone, -Proba), y=Proba, fill=Proba, text=paste("Number of Deaths: ", n, sep="")), stat='identity') +
+  scale_fill_gradient("Count", low="blue", high = "red") +
+  theme_solarized_2(light = FALSE) +
+  scale_colour_solarized("red") +
+  theme(axis.text.x = element_text(angle = 90))+
+  labs(title = "Probability of Death from Shark Attack (By zone)", 
+    x = "Zone", y = "Probability of Death from Shark Attack")
+ggplotly(Shark_Fatal_zone_Plot_Die)
+# Try to predict fatality using different SVM
+
+# Here, we take only relevant variables : time, Year, Sex, Age,Location, Country, Area, Species_Final, Zone, Injury_Type, Activity_Type
+attacks_predict <- attacks[,-c(12,13,17,18,20,21)]
+attacks_predict <- attacks_predict[rowSums(is.na(attacks_predict[,1:15]))==0,]
+#splitting into train and test
+smp_size <- floor(0.70 * nrow(attacks_predict))
+set.seed(200)
+train_ind <- sample(seq_len(nrow(attacks_predict)), size = smp_size)
+train1 <- attacks_predict[train_ind, ]
+test1 <- attacks_predict[-train_ind, ]
+library(e1071)
+train1x <- train1[,-15]
+train1y <- train1[,15]
+test1x <- test1[,-15]
+test1y <- test1[,15]
+model.svm1<-svm(factor(fatality)~.,data=train1,type='C',kernel='linear')
+pred1 <- predict(model.svm1,train1x)
+table(pred1, train1y)
+pred1bis <- predict(model.svm1, test1x)
+table(pred1bis,test1y)
+
+help(tune)
+attacks_predict2 <- attacks[,-c(12,13)]
+attacks_predict2 <- attacks_predict2[rowSums(is.na(attacks_predict2[,1:19]))==0,]
+smp_size2 <- floor(0.70 * nrow(attacks_predict2))
+train_ind2 <- sample(seq_len(nrow(attacks_predict2)), size = smp_size2)
+train2 <- attacks_predict2[train_ind2, ]
+test2 <- attacks_predict2[-train_ind2, ]
+train2x <- train2[,-18]
+train2y <- train2[,18]
+model.svm2<-svm(factor(fatality)~.,data=train2,type='C',kernel='linear')
+pred2 <- predict(model.svm2,train2x)
+View(train2)
+step.BIC <-step(lm(fatality~.,train1),k=log(nrow(train1)))
+
+
+table(pred2,train2y)
+
+
+sapply(train1, function(x) sum(length(which(is.na(x))))) 
+
+View(attacks_predict2)
+
+str(attacks_predict)
+
+```
+
+
